@@ -246,13 +246,21 @@ func (scope *Scope) handleBelongsToPreload(field *Field, conditions []interface{
 		indirectScopeValue = scope.IndirectValue()
 	)
 
+	foreignFieldToObjects := make(map[string][]*reflect.Value)
+	if indirectScopeValue.Kind() == reflect.Slice {
+		for j := 0; j < indirectScopeValue.Len(); j++ {
+			object := indirect(indirectScopeValue.Index(j))
+			valueString := toString(getValueFromFields(object, relation.ForeignFieldNames))
+			foreignFieldToObjects[valueString] = append(foreignFieldToObjects[valueString], &object)
+		}
+	}
+
 	for i := 0; i < resultsValue.Len(); i++ {
 		result := resultsValue.Index(i)
 		if indirectScopeValue.Kind() == reflect.Slice {
-			value := getValueFromFields(result, relation.AssociationForeignFieldNames)
-			for j := 0; j < indirectScopeValue.Len(); j++ {
-				object := indirect(indirectScopeValue.Index(j))
-				if equalAsString(getValueFromFields(object, relation.ForeignFieldNames), value) {
+			valueString := toString(getValueFromFields(result, relation.AssociationForeignFieldNames))
+			if objects, found := foreignFieldToObjects[valueString]; found {
+				for _, object := range objects {
 					object.FieldByName(field.Name).Set(result)
 				}
 			}
