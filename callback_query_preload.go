@@ -163,7 +163,6 @@ func (scope *Scope) handleHasOnePreload(field *Field, conditions []interface{}) 
 			valueString := toString(getValueFromFields(indirectValue, relation.AssociationForeignFieldNames))
 			if result, found := foreignValuesToResults[valueString]; found {
 				indirectValue.FieldByName(field.Name).Set(result)
-				break
 			}
 		}
 	} else {
